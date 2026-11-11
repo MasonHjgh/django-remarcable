@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Product Search</title>
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        form { display: grid; gap: 1rem; padding: 1rem; border: 1px solid #ccc; margin-bottom: 2rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+        .product { border-bottom: 1px solid #eee; padding: 0.75rem 0; }
+        .tag { background: #eef; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <h1>Products</h1>
+
+    <form method="get" action="{% url 'products:product_list' %}">
+        <label>
+            Search
+            <input type="text" name="q" value="{{ query }}" placeholder="Search name or description">
+        </label>
+
+        <label>
+            Category
+            <select name="category">
+                <option value="">All categories</option>
+                {% for id, label in category_options %}
+                    <option value="{{ id }}" {% if id == selected_category %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <fieldset>
+            <legend>Tags (products must have all selected tags)</legend>
+            <div class="tags">
+                {% for tag in tags %}
+                    <label>
+                        <input type="checkbox" name="tags" value="{{ tag.id }}"
+                               {% if tag.id in selected_tags %}checked{% endif %}>
+                        {{ tag.name }}
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <div>
+            <button type="submit">Search</button>
+            <a href="{% url 'products:product_list' %}">Clear filters</a>
+        </div>
+    </form>
+
+    <p>{{ products|length }} product{{ products|length|pluralize }} found</p>
+
+    {% for product in products %}
+        <div class="product">
+            <h3>{{ product.name }} — ${{ product.price }}</h3>
+            <p>{{ product.description }}</p>
+            <p>
+                <strong>Category:</strong>
+                {% if product.category %}{{ product.category.name }}{% else %}Uncategorized{% endif %}
+            </p>
+            <p>
+                {% for tag in product.tags.all %}
+                    <span class="tag">{{ tag.name }}</span>
+                {% empty %}
+                    <em>No tags</em>
+                {% endfor %}
+            </p>
+        </div>
+    {% empty %}
+        <p>No products match your search.</p>
+    {% endfor %}
+</body>
+</html>
